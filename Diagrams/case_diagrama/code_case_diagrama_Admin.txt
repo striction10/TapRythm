@@ -1,0 +1,17 @@
+@startuml
+
+left to right direction
+
+skinparam actorStyle awesome
+
+"Администратор" as Admin
+
+"Войти в систему" as (EnterSystem)
+"Добавлять композицию" as (AddSong)
+"Блокировать пользователя" as (BlockUser)
+
+:Admin: --> EnterSystem
+:Admin: --> AddSong
+:Admin: --> BlockUser
+
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+
+left to right direction
+
+skinparam actorStyle awesome
+
+"Гость" as Guest
+
+"Зарегистрироваться" as (EnterSystem)
+"Просматривать композиции" as (LookSong)
+
+:Guest: --> EnterSystem
+:Guest: --> LookSong
+
+@enduml

@@ -1,0 +1,116 @@
+Table Users {
+  id integer [primary key]
+  username varchar [not null, unique]
+  password varchar [not null]
+  flag_block bool
+  status varchar
+  created_at timestamp [default: `now()`]
+}
+
+Table Songs {
+  id integer [primary key]
+  artist_id integer
+  song_name varchar [not null]
+  duration float
+  difficulty integer
+  song_file_path varchar
+  created_at timestamp [default: `now()`]
+}
+
+Table Genres {
+  id integer [primary key]
+  genre_name varchar [not null, unique]
+}
+
+Table SongGenres {
+  id integer [primary key]
+  song_id integer
+  genre_id integer
+}
+
+Table Artists {
+  id integer [primary key]
+  artist_name varchar [not null, unique]
+  created_at timestamp [default: `now()`]
+}
+
+Table UserSongs {
+  id integer [primary key]
+  user_id integer
+  song_id integer
+  is_favorite boolean [default: false]
+  added_at timestamp [default: `now()`]  
+}
+
+Table Scores {
+  id integer [primary key]
+  user_id integer
+  song_id integer
+  score integer
+  perfect_count integer
+  great_count integer
+  good_count integer
+  miss_count integer
+}
+
+Table UserStats {
+  id integer [primary key]
+  user_id integer [unique]
+  total_plays integer [default: 0]
+  total_perfect integer [default: 0]
+  total_score integer [default: 0]
+  favorite_song_id integer
+}
+
+//Опционально
+Table Achievements {
+  id integer [primary key]
+  achievement_name varchar [not null]
+  description text
+  value integer
+  created_at timestamp [default: `now()`]
+}
+
+//Опционально
+Table UserAchievements {
+  id integer [primary key]
+  user_id integer
+  achievement_id integer
+  is_completed boolean [default: false]
+  completed_at timestamp
+}
+
+//Опционально
+Table UserSettings {
+  id integer [primary key]
+  user_id integer
+  volume_music float [default: 1.0]
+}
+
+Ref: Scores.user_id > Users.id 
+
+Ref: Scores.song_id > Songs.id
+
+Ref: UserSongs.user_id > Users.id
+
+Ref: UserSongs.song_id > Songs.id
+
+Ref: Songs.artist_id > Artists.id
+
+//Опционально
+Ref: UserSettings.user_id > Users.id
+
+Ref: UserStats.user_id > Users.id
+
+Ref: UserStats.favorite_song_id > Songs.id
+
+Ref: SongGenres.song_id > Songs.id
+
+Ref: SongGenres.genre_id > Genres.id
+
+//Опционально
+Ref: UserAchievements.user_id > Users.id
+
+//Опционально
+Ref: UserAchievements.achievement_id > Achievements.id
+
