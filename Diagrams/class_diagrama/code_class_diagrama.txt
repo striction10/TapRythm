@@ -1,0 +1,186 @@
+@startuml
+
+class GameManager {
+    +SongManager songManager
+    +UIManager uiManager
+    +ScoreManager scoreManager
+    +GameState currentState
+    +InitializeGame()
+    +LoadLevel()
+    +PauseGame()
+    +GameOver()
+}
+    
+class SongManager {
+    +AudioSource musicSource
+    +float bpm
+    +float offset
+    +SongData currentSong
+    +double startTime
+    +PlaySong()
+    +GetCurrentBeat()
+    +SyncWithMusic()
+}
+    
+class NoteSpawner {
+    +GameObject notePrefab
+    +Transform[] lanes
+    +float spawnInterval
+    +float noteSpeed
+    +Queue<NoteData> noteQueue
+    +SpawnNote()
+    +InitializeFromChart()
+    +ClearAllNotes()
+}
+    
+class Note {
+    +int laneIndex
+    +float hitTime
+    +NoteType type
+    +bool isHit
+    +SpriteRenderer sprite
+    +Initialize()
+    +UpdatePosition()
+    +OnHit()
+    +OnMiss()
+}
+    
+class Lane {
+    +int laneIndex
+    +KeyCode bindKey
+    +Color laneColor
+    +float width
+    +Transform hitZone
+    +OnLanePressed()
+    +CheckForNotes()
+    +FlashLane()
+}
+    
+class ScoreManager {
+    +int currentScore
+    +int perfectCount
+    +int greatCount
+    +int goodCount
+    +int missCount
+    +AddScore(HitResult result)
+    +CalculateCount()
+    +GetGrade()
+}
+    
+class UIManager {
+    +string scoreText
+    +Slider progressBar
+    +UpdateScoreDisplay()
+    +ShowHitEffect(HitResult result)
+    +ShowPauseMenu()
+}
+    
+class InputManager {
+    +bool[] lanePressed
+    +float inputOffset
+    +ProcessInput()
+    +CalibrateOffset()
+    +HandleTouchInput()
+}
+    
+class SongData {
+    +string songName
+    +string artist
+    +float bpm
+    +float duration
+    +AudioClip music
+    +TextAsset chartFile
+    +LoadChart()
+    +GetNoteData()
+}
+    
+class ChartLoader {
+    +TextAsset chartFile
+    +List<NoteData> notes
+    +ParseChart()
+    +ValidateChart()
+    +ConvertToNoteData()
+}
+    
+class NoteData {
+    +int lane
+    +float beat
+    +NoteType type
+    +float duration
+}
+    
+class PlayerData {
+    +string playerName
+    +int highScore
+    +int totalPlays
+    +float averageAccuracy
+    +List<SongData> unlockedSongs
+    +LoadProgress()
+    +SaveProgress()
+    +UnlockSong()
+}
+    
+class Settings {
+    +float musicVolume
+    +float sfxVolume
+    +float noteSpeed
+    +int offset
+    +bool showHitEffects
+    +ApplySettings()
+    +LoadSettings()
+    +Calibrate()
+}
+
+enum HitResult {
+    PERFECT
+    GREAT
+    GOOD
+    MISS
+}
+    
+enum NoteType {
+    TAP
+    HOLD
+    SLIDE
+}
+    
+enum GameState {
+    MENU
+    PLAYING
+    PAUSED
+    GAMEOVER
+    RESULTS
+}
+    
+GameManager *-- SongManager
+GameManager *-- UIManager
+GameManager *-- ScoreManager
+GameManager *-- InputManager
+    
+SongManager o-- SongData
+SongManager *-- NoteSpawner
+    
+NoteSpawner --> Note
+NoteSpawner o-- NoteData
+    
+Note --> Lane
+    
+InputManager --> Lane
+InputManager --> Note : check
+    
+ScoreManager --> HitResult
+    
+ChartLoader --> NoteData : add
+ChartLoader --> SongData
+    
+PlayerData --> SongData
+PlayerData --> Settings
+    
+Note --> NoteType
+
+GameManager --> GameState
+
+NoteData --> NoteType
+
+@enduml
+
