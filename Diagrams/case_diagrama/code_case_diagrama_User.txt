@@ -10,7 +10,7 @@ skinparam actorStyle awesome
 "Выбирать композицию" as (ChooseSong)
 "Просматривать статистику" as (CheckStats)
 "Проигрывать композицию" as (PlaySong)
-"Совершать внутреигроваые покупки" as (PayThings)
+"Совершать внутриигроваые покупки" as (PayThings)
 "Добавлять композицию в список желаемых" as (AddSongWishList)
 
 :User: --> EnterSystem
