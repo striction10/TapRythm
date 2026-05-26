@@ -2,6 +2,7 @@ using UnityEngine;
 using TapRythm.Enums;
 using TapRythm.Interfaces;
 using TapRythm.UI;
+using TapRythm.Managers;
 
 namespace TapRythm.Notes
 {
@@ -17,8 +18,34 @@ namespace TapRythm.Notes
         public NoteType Type => _data.Type;
         public bool IsHit => _data.IsHit;
 
+        private void EnsureComponents()
+        {
+            if (_movement == null)
+            {
+                _movement = GetComponent<NoteMovement>();
+                if (_movement == null)
+                    _movement = gameObject.AddComponent<NoteMovement>();
+            }
+            
+            if (_data == null)
+            {
+                _data = GetComponent<NoteDataComponent>();
+                if (_data == null)
+                    _data = gameObject.AddComponent<NoteDataComponent>();
+            }
+            
+            if (_visual == null)
+            {
+                _visual = GetComponent<NoteVisual>();
+                if (_visual == null)
+                    _visual = gameObject.AddComponent<NoteVisual>();
+            }
+        }
+
         public void Init(int lane, float hitTime, NoteType type, float speed, float startZ, float targetZ)
         {
+            EnsureComponents();
+            
             _data.Init(lane, hitTime, type);
             _movement.Init(speed, startZ, targetZ);
         }
@@ -50,6 +77,8 @@ namespace TapRythm.Notes
             HitResult result = GetHitResultFromAccuracy(accuracy);
             AccuracyText.Show(result);
 
+            ScoreManager.Instance.AddScore(result);
+
             _data.MarkAsHit();
             _visual?.PlayHitEffect();
             DestroyNote();
@@ -62,7 +91,11 @@ namespace TapRythm.Notes
                 return;
             }
             _data.MarkAsHit();
-            _visual?.PlayHitEffect();
+            _visual?.PlayMissEffect();
+
+            AccuracyText.Show(HitResult.Miss);
+            ScoreManager.Instance.AddScore(HitResult.Miss);
+            
             DestroyNote();
         }
 
