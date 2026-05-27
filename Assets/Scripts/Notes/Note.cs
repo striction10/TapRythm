@@ -80,7 +80,7 @@ namespace TapRythm.Notes
             ScoreManager.Instance.AddScore(result);
 
             _data.MarkAsHit();
-            _visual?.PlayHitEffect();
+            _visual?.PlayHitEffect(result);
             DestroyNote();
         }
 
