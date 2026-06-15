@@ -8,22 +8,20 @@ namespace TapRythm.Managers
     {
         public static SongManager Instance { get; private set; }
         
-        [Header("Audio")]
-        private AudioSource _audioSource;
+        [SerializeField] private AudioSource _audioSource;
         
-        [Header("Current Song")]
         private SongChart _currentChart;
         private float _bpm;
         private float _secPerBeat;
         private double _songStartTime;
+        private double _pauseTimeOffset = 0;
+        private bool _isPaused = false;
         
-        [Header("Note Spawning")]
         private Queue<NoteData> _noteQueue;
         private System.Action<NoteData> _onNoteSpawn;
         
         public bool IsPlaying { get; private set; }
-        public float CurrentSongTime => (float)(AudioSettings.dspTime - _songStartTime);
-        public float CurrentBeat => IsPlaying ? (float)((AudioSettings.dspTime - _songStartTime) / _secPerBeat) : 0f;
+        public float CurrentBPM => _bpm;
         
         private void Awake()
         {
@@ -31,24 +29,30 @@ namespace TapRythm.Managers
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                
+                if (_audioSource == null)
+                {
+                    _audioSource = GetComponent<AudioSource>();
+                    if (_audioSource == null)
+                        _audioSource = gameObject.AddComponent<AudioSource>();
+                    
+                    _audioSource.playOnAwake = false;
+                    _audioSource.loop = false;
+                }
             }
             else
             {
                 Destroy(gameObject);
             }
-            
-            _audioSource = GetComponent<AudioSource>();
-            if (_audioSource == null)
-                _audioSource = gameObject.AddComponent<AudioSource>();
         }
         
         private void Update()
         {
-            if (!IsPlaying) return;
+            if (!IsPlaying || _isPaused) return;
             
             float currentBeat = CurrentBeat;
             
-            while (_noteQueue.Count > 0 && _noteQueue.Peek().beat <= currentBeat + 2f)
+            while (_noteQueue != null && _noteQueue.Count > 0 && _noteQueue.Peek().beat <= currentBeat + 2f)
             {
                 NoteData note = _noteQueue.Dequeue();
                 _onNoteSpawn?.Invoke(note);
@@ -62,43 +66,54 @@ namespace TapRythm.Managers
             _secPerBeat = 60f / _bpm;
             _onNoteSpawn = onNoteSpawn;
             
+            if (_audioSource == null) return;
+            
             _audioSource.clip = audioClip;
             
             var sortedNotes = new List<NoteData>(chart.notes);
             sortedNotes.Sort((a, b) => a.beat.CompareTo(b.beat));
             _noteQueue = new Queue<NoteData>(sortedNotes);
-            
         }
         
         public void PlaySong()
         {
-            if (_audioSource.clip == null)
-            {
-                return;
-            }
+            if (_audioSource == null || _audioSource.clip == null) return;
             
             _songStartTime = AudioSettings.dspTime + 0.5;
             _audioSource.PlayScheduled(_songStartTime);
             IsPlaying = true;
+            _isPaused = false;
+            _pauseTimeOffset = 0;
+        }
+        
+        public float CurrentBeat => IsPlaying ? (float)((AudioSettings.dspTime - _songStartTime) / _secPerBeat) : 0f;
+        
+        public void PauseSong()
+        {
+            if (!IsPlaying || _isPaused) return;
+            
+            _isPaused = true;
+            _audioSource.Pause();
+            _pauseTimeOffset = AudioSettings.dspTime - _songStartTime;
+            IsPlaying = false;
+        }
+        
+        public void ResumeSong()
+        {
+            if (!_isPaused) return;
+            
+            _songStartTime = AudioSettings.dspTime - _pauseTimeOffset;
+            _audioSource.Play();
+            IsPlaying = true;
+            _isPaused = false;
         }
         
         public void StopSong()
         {
             IsPlaying = false;
+            _isPaused = false;
             _audioSource.Stop();
             _noteQueue?.Clear();
-        }
-        
-        public void PauseSong()
-        {
-            IsPlaying = false;
-            _audioSource.Pause();
-        }
-        
-        public void ResumeSong()
-        {
-            IsPlaying = true;
-            _audioSource.UnPause();
         }
     }
 }

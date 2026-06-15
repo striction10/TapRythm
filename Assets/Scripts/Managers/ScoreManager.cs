@@ -11,6 +11,7 @@ namespace TapRythm.Managers
         private int _currentScore;
         private int _perfectCount;
         private int _comboMultiplier;
+        private int _combo;
         
         [Header("Hit Counters")]
         private int _totalPerfect;
@@ -40,6 +41,7 @@ namespace TapRythm.Managers
         public int GreatCount => _totalGreat;
         public int GoodCount => _totalGood;
         public int MissCount => _totalMiss;
+        public int Combo => _combo;
         
         public static event System.Action<int, int> OnScoreUpdated;
         
