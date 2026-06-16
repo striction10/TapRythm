@@ -37,6 +37,7 @@ namespace TapRythm.Auth
         
         [Header("API Settings")]
         [SerializeField] private string _apiUrl = "http://localhost:5001/api";
+        public string ApiUrl => _apiUrl;
         [SerializeField] private string _gameSceneName = "GameScene";
         
         public string Token { get; private set; }
