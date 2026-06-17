@@ -1,51 +1,109 @@
 using UnityEngine;
 using TapRythm.Data;
 using TapRythm.Managers;
-using TapRythm.Notes;
-using System.Collections;
-using System.IO;
-using UnityEngine.Networking;
+using TapRythm.Utils;
 
 namespace TapRythm.UI
 {
     public class SongPicker : MonoBehaviour
     {
-        [Header("Song Settings")]
-        [SerializeField] private string _songFolder = "Songs/Level1";
-        [SerializeField] private string _songFileName = "song.mp3";
-        [SerializeField] private string _chartFileName = "chart.json";
         [SerializeField] private NoteSpawner _noteSpawner;
+        [SerializeField] private AudioClip _audioClip;
+        [SerializeField] private TextAsset _chartFile;
+        [SerializeField] private bool _autoGenerate = true;
+        
+        private SongChart _currentChart;
+        private int _currentSongId;
+        private string _currentSongName;
         
         private void Start()
-        {
-            StartCoroutine(LoadAndPlaySong());
-        }
-        
-        private IEnumerator LoadAndPlaySong()
-        {
-            SongChart chart = ChartLoader.LoadFromStreamingAssets(_songFolder, _chartFileName);
-            if (chart == null)
+        {     
+            if (SongLibraryManager.Instance == null)
             {
-                yield break;
+                Debug.LogError("SongPicker: SongLibraryManager.Instance = null!");
+                return;
             }
             
-            string audioPath = Path.Combine(Application.streamingAssetsPath, _songFolder, _songFileName);
+            var currentSong = SongLibraryManager.Instance.CurrentSong;
             
-            string url = "file://" + audioPath;
-            
-            using (UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.MPEG))
+            if (currentSong == null && PlayerPrefs.HasKey("SelectedSongId"))
             {
-                yield return request.SendWebRequest();
-                
-                if (request.result == UnityWebRequest.Result.Success)
+                int songId = PlayerPrefs.GetInt("SelectedSongId");
+                currentSong = SongLibraryManager.Instance.GetSongById(songId);
+                if (currentSong != null)
                 {
-                    AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
-                    
-                    SongManager.Instance.LoadSong(chart, clip, OnNoteSpawn);
-                    SongManager.Instance.PlaySong();
-                    ScoreManager.Instance.ResetScore();
+                    SongLibraryManager.Instance.SelectSong(songId);
                 }
             }
+            
+            if (currentSong == null)
+            {
+                var songs = SongLibraryManager.Instance.Songs;
+                if (songs != null && songs.Count > 0)
+                {
+                    currentSong = songs[0];
+                    SongLibraryManager.Instance.SelectSong(currentSong.id);
+                }
+                else
+                {
+                    Debug.LogError("SongPicker: нет доступных песен!");
+                    return;
+                }
+            }
+            
+            _currentSongId = currentSong.id;
+            _currentSongName = currentSong.songName;
+            LoadChart();
+            
+            StartSong();
+        }
+        
+        private void LoadChart()
+        {
+            if (_autoGenerate && _audioClip != null)
+            {
+                float bpm = 120f;
+                
+                var currentSong = SongLibraryManager.Instance.CurrentSong;
+                if (currentSong != null && !string.IsNullOrEmpty(currentSong.bpm))
+                {
+                    bpm = float.Parse(currentSong.bpm);
+                }
+                
+                _currentChart = AudioAnalyzer.GenerateChartFromAudio(_audioClip, bpm);
+                return;
+            }
+            
+            if (_chartFile != null)
+            {
+                _currentChart = JsonUtility.FromJson<SongChart>(_chartFile.text);
+            }
+            else
+            {
+                _currentChart = ChartLoader.CreateTestChart();
+            }
+        }
+        
+        public void StartSong()
+        {
+            if (_currentChart == null)
+            {
+                Debug.LogError("Карта нот не загружена!");
+                return;
+            }
+            
+            if (_audioClip == null)
+            {
+                Debug.LogError("AudioClip не загружен!");
+                return;
+            }
+            
+            int totalNotes = _currentChart.notes.Count;
+            ScoreManager.Instance.SetSongInfo(_currentSongId, _currentSongName, totalNotes);
+            ScoreManager.Instance.ResetScore();
+            
+            SongManager.Instance.LoadSong(_currentChart, _audioClip, OnNoteSpawn);
+            SongManager.Instance.PlaySong();
         }
         
         private void OnNoteSpawn(NoteData noteData)

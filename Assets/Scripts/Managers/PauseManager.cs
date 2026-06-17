@@ -2,59 +2,28 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TapRythm.Auth;
+using TapRythm.Managers;
 using System.Collections;
 
-namespace TapRythm.Managers
+namespace TapRythm.Game
 {
     public class PauseManager : MonoBehaviour
     {
-        private GameObject _pausePanel;
-        private Button _pauseButton;
-        private Button _resumeButton;
-        private Button _menuButton;
+        [Header("UI References")]
+        [SerializeField] private GameObject _pausePanel;
+        [SerializeField] private Button _pauseButton;
+        [SerializeField] private Button _resumeButton;
+        [SerializeField] private Button _menuButton;
         
         private bool _isPaused = false;
         private float _timeScaleBeforePause = 1f;
         
         private void Start()
         {
-            FindUIElements();
             SetupButtons();
             
             if (_pausePanel != null)
                 _pausePanel.SetActive(false);
-        }
-        
-        private void OnEnable()
-        {
-            FindUIElements();
-            SetupButtons();
-        }
-        
-        private void FindUIElements()
-        {
-            Canvas canvas = FindFirstObjectByType<Canvas>();
-            if (canvas == null) return;
-            
-            // Ищем кнопку паузы
-            Transform pauseBtn = canvas.transform.Find("PauseButton");
-            if (pauseBtn != null)
-                _pauseButton = pauseBtn.GetComponent<Button>();
-            
-            // Ищем панель паузы
-            Transform panel = canvas.transform.Find("PausePanel");
-            if (panel != null)
-            {
-                _pausePanel = panel.gameObject;
-                
-                Transform resumeBtn = panel.Find("ResumeGameButton");
-                if (resumeBtn != null)
-                    _resumeButton = resumeBtn.GetComponent<Button>();
-                
-                Transform exitBtn = panel.Find("ExitGameButton");
-                if (exitBtn != null)
-                    _menuButton = exitBtn.GetComponent<Button>();
-            }
         }
         
         private void SetupButtons()
@@ -86,13 +55,10 @@ namespace TapRythm.Managers
             _timeScaleBeforePause = Time.timeScale;
             Time.timeScale = 0f;
             
-            SongManager songManager = FindFirstObjectByType<SongManager>();
-            if (songManager != null)
-                songManager.PauseSong();
+            SongManager.Instance?.PauseSong();
             
-            NoteSpawner noteSpawner = FindFirstObjectByType<NoteSpawner>();
-            if (noteSpawner != null)
-                noteSpawner.StopSpawning();
+            var noteSpawner = FindFirstObjectByType<NoteSpawner>();
+            noteSpawner?.StopSpawning();
             
             if (_pausePanel != null)
                 _pausePanel.SetActive(true);
@@ -105,13 +71,10 @@ namespace TapRythm.Managers
             _isPaused = false;
             Time.timeScale = _timeScaleBeforePause;
             
-            SongManager songManager = FindFirstObjectByType<SongManager>();
-            if (songManager != null)
-                songManager.ResumeSong();
+            SongManager.Instance?.ResumeSong();
             
-            NoteSpawner noteSpawner = FindFirstObjectByType<NoteSpawner>();
-            if (noteSpawner != null)
-                noteSpawner.StartSpawning();
+            var noteSpawner = FindFirstObjectByType<NoteSpawner>();
+            noteSpawner?.StartSpawning();
             
             if (_pausePanel != null)
                 _pausePanel.SetActive(false);
@@ -120,17 +83,9 @@ namespace TapRythm.Managers
         private void BackToMenu()
         {
             AuthUI.SetManualLogout();
-            
-            if (AuthManager.Instance != null)
-                AuthManager.Instance.Logout();
+            AuthManager.Instance?.Logout();
             
             Time.timeScale = 1f;
-            StartCoroutine(DelayedLoadAuthScene());
-        }
-        
-        private IEnumerator DelayedLoadAuthScene()
-        {
-            yield return new WaitForSeconds(0.1f);
             SceneManager.LoadScene("AuthScene");
         }
         

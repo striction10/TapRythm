@@ -43,11 +43,23 @@ namespace TapRythm.UI
                 return;
             }
             
+            await LoadProfile();
             await LoadSongs();
             CreateSongButtons();
             
             _playButton.onClick.AddListener(OnPlaySelected);
             SelectFirstAvailable();
+        }
+        
+        private async Task LoadProfile()
+        {
+            await UserStatsManager.Instance.LoadStats();
+            
+            if (_profileUsernameText != null)
+                _profileUsernameText.text = AuthManager.Instance.Username;
+            
+            if (_profileScoreText != null)
+                _profileScoreText.text = $"{UserStatsManager.Instance.Stats?.totalScore ?? 0}";
         }
         
         private async Task LoadSongs()
@@ -59,13 +71,7 @@ namespace TapRythm.UI
                 return;
             }
             
-            _songs = SongLibraryManager.Instance.Songs;
-            
-            if (_profileUsernameText != null)
-                _profileUsernameText.text = AuthManager.Instance.Username;
-            
-            if (_profileScoreText != null)
-                _profileScoreText.text = $"{SongLibraryManager.Instance.TotalScore}";
+            _songs = SongLibraryManager.Instance.Songs; 
         }
         
         private void CreateSongButtons()
@@ -98,9 +104,15 @@ namespace TapRythm.UI
         private void SelectSong(int index)
         {
             
+            if (index < 0 || index >= _songs.Count)
+            {
+                Debug.LogError($"SelectSong: индекс {index} вне диапазона!");
+                return;
+            }
+            
             if (_songs[index].isUnlocked == false)
             {
-                Debug.LogWarning($"SelectSong: песня {_songs[index].songName} закрыта! Игнорируем клик.");
+                Debug.LogWarning($"SelectSong: песня {_songs[index].songName} закрыта!");
                 return;
             }
             
@@ -118,6 +130,12 @@ namespace TapRythm.UI
         
         private void SelectFirstAvailable()
         {
+            
+            if (_songs == null || _songs.Count == 0)
+            {
+                Debug.LogError("SelectFirstAvailable: список песен пуст!");
+                return;
+            }
             
             for (int i = 0; i < _songs.Count; i++)
             {
@@ -138,28 +156,16 @@ namespace TapRythm.UI
         
         private void OnPlaySelected()
         {
-            
-            if (_selectedIndex < 0)
-            {
-                Debug.LogError("_selectedIndex = -1!");
-                return;
-            }
-            
-            if (_selectedIndex >= _songs.Count)
-            {
-                Debug.LogError($"_selectedIndex={_selectedIndex} >= _songs.Count={_songs.Count}");
-                return;
-            }
+            if (_selectedIndex < 0) return;
             
             SongDto song = _songs[_selectedIndex];
-            
-            if (!song.isUnlocked)
-            {
-                Debug.LogWarning("Песня закрыта!");
-                return;
-            }
+            if (!song.isUnlocked) return;
             
             SongLibraryManager.Instance.SelectSong(song.id);
+            
+            PlayerPrefs.SetInt("SelectedSongId", song.id);
+            PlayerPrefs.Save();
+            
             SceneManager.LoadScene("TimeToGame");
         }
     }

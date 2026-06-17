@@ -8,11 +8,7 @@ namespace TapRythm.UI
     {
         [SerializeField] private Text _scoreText;
         [SerializeField] private Text _comboText;
-        
-        [Header("Multiplier Colors")]
-        [SerializeField] private Color _multiplier2Color = new Color(0.2f, 0.8f, 0.2f);
-        [SerializeField] private Color _multiplier3Color = new Color(1f, 0.5f, 0f);
-        [SerializeField] private Color _multiplier4Color = new Color(0.7f, 0.2f, 0.8f);
+        [SerializeField] private GameObject _comboPanel;
         
         private void OnEnable()
         {
@@ -24,36 +20,35 @@ namespace TapRythm.UI
             ScoreManager.OnScoreUpdated -= UpdateUI;
         }
         
-        private void UpdateUI(int score, int multiplier)
+        private void UpdateUI(int score, int combo)
         {
             if (_scoreText != null)
                 _scoreText.text = score.ToString();
             
             if (_comboText != null)
             {
+                int multiplier = ScoreManager.Instance.ComboMultiplier;
+                
                 if (multiplier > 1)
                 {
                     _comboText.text = $"x{multiplier}";
+                    _comboText.gameObject.SetActive(true);
                     
-                    switch (multiplier)
-                    {
-                        case 2:
-                            _comboText.color = _multiplier2Color;
-                            break;
-                        case 3:
-                            _comboText.color = _multiplier3Color;
-                            break;
-                        case 4:
-                            _comboText.color = _multiplier4Color;
-                            break;
-                        default:
-                            _comboText.color = Color.white;
-                            break;
-                    }
+                    if (multiplier >= 4)
+                        _comboText.color = new Color(0.8f, 0.2f, 0.8f);
+                    else if (multiplier >= 3)
+                        _comboText.color = new Color(1f, 0.5f, 0f);
+                    else if (multiplier >= 2)
+                        _comboText.color = Color.green;
+                    
+                    if (_comboPanel != null)
+                        _comboPanel.SetActive(true);
                 }
                 else
                 {
-                    _comboText.text = "";
+                    _comboText.gameObject.SetActive(false);
+                    if (_comboPanel != null)
+                        _comboPanel.SetActive(false);
                 }
             }
         }

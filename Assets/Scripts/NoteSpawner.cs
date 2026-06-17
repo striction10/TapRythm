@@ -8,9 +8,11 @@ namespace TapRythm.Managers
 {
     public class NoteSpawner : MonoBehaviour
     {
+        [Header("References")]
         [SerializeField] private GameObject _notePrefab;
         [SerializeField] private Transform[] _lanes;
         
+        [Header("Spawn Settings")]
         [SerializeField] private float _startZ = 10f;
         [SerializeField] private float _targetZ = 2f;
         [SerializeField] private float _noteSpeed = 2f;
@@ -31,21 +33,39 @@ namespace TapRythm.Managers
         
         private void SpawnNoteInternal(NoteData noteData)
         {
-            if (noteData.lane >= _lanes.Length) return;
-            
-            NoteType noteType = NoteType.Tap;
-            switch (noteData.type.ToLower())
+            if (noteData.lane >= _lanes.Length)
             {
-                case "hold": noteType = NoteType.Hold; break;
-                case "slide": noteType = NoteType.Slide; break;
+                Debug.LogWarning($"Нет дорожки {noteData.lane}");
+                return;
             }
             
-            SpawnNote(noteData.lane, noteData.beat, noteType);
+            NoteType noteType = NoteType.Tap;
+            float duration = 0f;
+            
+            switch (noteData.type.ToLower())
+            {
+                case "hold": 
+                    noteType = NoteType.Hold; 
+                    duration = noteData.duration > 0 ? noteData.duration : 2f;
+                    break;
+                case "slide": 
+                    noteType = NoteType.Slide; 
+                    break;
+                default: 
+                    noteType = NoteType.Tap; 
+                    break;
+            }
+            
+            SpawnNote(noteData.lane, noteData.beat, noteType, duration);
         }
         
-        public void SpawnNote(int lane, float beat, NoteType type = NoteType.Tap)
+        public void SpawnNote(int lane, float beat, NoteType type = NoteType.Tap, float duration = 0f)
         {
-            if (lane >= _lanes.Length) return;
+            if (lane >= _lanes.Length)
+            {
+                Debug.LogWarning($"Нет дорожки {lane}");
+                return;
+            }
             
             Vector3 spawnPos = _lanes[lane].position;
             spawnPos.z = _startZ;
@@ -55,7 +75,11 @@ namespace TapRythm.Managers
             
             if (note != null)
             {
-                note.Init(lane, beat, type, _noteSpeed, _startZ, _targetZ);
+                note.Init(lane, beat, type, _noteSpeed, _startZ, _targetZ, duration);
+            }
+            else
+            {
+                Debug.LogError("NotePrefab не содержит компонент Note!");
             }
         }
         
@@ -82,5 +106,10 @@ namespace TapRythm.Managers
                 Destroy(note.gameObject);
             }
         }
+        
+        public void SetNoteSpeed(float speed) => _noteSpeed = speed;
+        public float TargetZ => _targetZ;
+        public float StartZ => _startZ;
+        public float NoteSpeed => _noteSpeed;
     }
 }

@@ -1,5 +1,9 @@
 using UnityEngine;
 using TapRythm.Enums;
+using TapRythm.Data;
+using TapRythm.Managers;
+using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 namespace TapRythm.Managers
 {
@@ -7,27 +11,30 @@ namespace TapRythm.Managers
     {
         public static ScoreManager Instance { get; private set; }
         
+        public static event System.Action<int, int> OnScoreUpdated;
+        
         [Header("Current Stats")]
         private int _currentScore;
-        private int _perfectCount;
-        private int _comboMultiplier;
         private int _combo;
+        private int _maxCombo;
+        private int _comboMultiplier = 1;
+        private int _perfectCount;
+        private int _greatCount;
+        private int _goodCount;
+        private int _missCount;
+        private int _totalNotes;
+        private int _currentSongId;
+        private string _currentSongName;
         
-        [Header("Hit Counters")]
-        private int _totalPerfect;
-        private int _totalGreat;
-        private int _totalGood;
-        private int _totalMiss;
-        
-        [Header("Combo Thresholds")]
-        [SerializeField] private int _combo2Threshold = 10;
-        [SerializeField] private int _combo3Threshold = 25;
-        [SerializeField] private int _combo4Threshold = 50;
-        
-        [Header("Base Score Values")]
+        [Header("Score Values")]
         [SerializeField] private int _perfectPoints = 100;
         [SerializeField] private int _greatPoints = 80;
         [SerializeField] private int _goodPoints = 50;
+        
+        [Header("Multiplier Thresholds")]
+        [SerializeField] private int _multiplier2Threshold = 10;
+        [SerializeField] private int _multiplier3Threshold = 20;
+        [SerializeField] private int _multiplier4Threshold = 30;
         
         [Header("Multiplier Values")]
         [SerializeField] private float _multiplier1 = 1.0f;
@@ -36,14 +43,13 @@ namespace TapRythm.Managers
         [SerializeField] private float _multiplier4 = 1.4f;
         
         public int CurrentScore => _currentScore;
-        public int ComboMultiplier => _comboMultiplier;
-        public int PerfectCount => _totalPerfect;
-        public int GreatCount => _totalGreat;
-        public int GoodCount => _totalGood;
-        public int MissCount => _totalMiss;
         public int Combo => _combo;
-        
-        public static event System.Action<int, int> OnScoreUpdated;
+        public int ComboMultiplier => _comboMultiplier;
+        public int PerfectCount => _perfectCount;
+        public int GreatCount => _greatCount;
+        public int GoodCount => _goodCount;
+        public int MissCount => _missCount;
+        public int MaxCombo => _maxCombo;
         
         private void Awake()
         {
@@ -51,6 +57,7 @@ namespace TapRythm.Managers
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+                SongManager.OnSongFinished += OnSongFinished;
             }
             else
             {
@@ -58,32 +65,38 @@ namespace TapRythm.Managers
             }
         }
         
+        private void OnDestroy()
+        {
+            SongManager.OnSongFinished -= OnSongFinished;
+        }
+        
+        public void SetSongInfo(int songId, string songName, int totalNotes)
+        {
+            _currentSongId = songId;
+            _currentSongName = songName;
+            _totalNotes = totalNotes;
+        }
+        
         public void ResetScore()
         {
             _currentScore = 0;
-            _perfectCount = 0;
+            _combo = 0;
+            _maxCombo = 0;
             _comboMultiplier = 1;
-            
-            _totalPerfect = 0;
-            _totalGreat = 0;
-            _totalGood = 0;
-            _totalMiss = 0;
+            _perfectCount = 0;
+            _greatCount = 0;
+            _goodCount = 0;
+            _missCount = 0;
         }
         
         private void UpdateMultiplier()
         {
-            if (_perfectCount >= _combo4Threshold)
-            {
+            if (_perfectCount >= _multiplier4Threshold)
                 _comboMultiplier = 4;
-            }
-            else if (_perfectCount >= _combo3Threshold)
-            {
+            else if (_perfectCount >= _multiplier3Threshold)
                 _comboMultiplier = 3;
-            }
-            else if (_perfectCount >= _combo2Threshold)
-            {
+            else if (_perfectCount >= _multiplier2Threshold)
                 _comboMultiplier = 2;
-            }
             else
                 _comboMultiplier = 1;
         }
@@ -107,25 +120,21 @@ namespace TapRythm.Managers
             switch (result)
             {
                 case HitResult.Perfect:
-                    _totalPerfect++;
                     _perfectCount++;
                     UpdateMultiplier();
                     multiplier = GetMultiplierValue();
                     points = Mathf.RoundToInt(_perfectPoints * multiplier);
                     break;
-                    
                 case HitResult.Great:
-                    _totalGreat++;
+                    _greatCount++;
                     points = Mathf.RoundToInt(_greatPoints * multiplier);
                     break;
-                    
                 case HitResult.Good:
-                    _totalGood++;
+                    _goodCount++;
                     points = Mathf.RoundToInt(_goodPoints * multiplier);
                     break;
-                    
                 case HitResult.Miss:
-                    _totalMiss++;
+                    _missCount++;
                     _perfectCount = 0;
                     _comboMultiplier = 1;
                     points = 0;
@@ -134,17 +143,50 @@ namespace TapRythm.Managers
             
             _currentScore += points;
             
-            OnScoreUpdated?.Invoke(_currentScore, _comboMultiplier);
+            if (result != HitResult.Miss)
+                _combo++;
+            else
+                _combo = 0;
+            
+            if (_combo > _maxCombo)
+                _maxCombo = _combo;
+            
+            OnScoreUpdated?.Invoke(_currentScore, _combo);
         }
         
-        public float GetAccuracy()
+        public async void OnSongFinished()
         {
-            int total = _totalPerfect + _totalGreat + _totalGood + _totalMiss;
-            if (total == 0) 
+            Debug.Log($"OnSongFinished: песня завершена! Очки: {_currentScore}, Perfect: {_perfectCount}, MaxCombo: {_maxCombo}");
+            
+            var progressResponse = await SongLibraryManager.Instance.SaveProgress(
+                _currentSongId, 
+                _currentScore, 
+                _perfectCount, 
+                _totalNotes
+            );
+            
+            if (progressResponse != null && progressResponse.success)
             {
-                return 0f;
+                Debug.Log($"Прогресс сохранён: {progressResponse.message}");
+                if (progressResponse.songCompleted)
+                {
+                    Debug.Log($"🎉 Песня пройдена! Разблокирована: {progressResponse.unlockedSongName}");
+                }
             }
-            return (float)(_totalPerfect * 1.0 + _totalGreat * 0.8 + _totalGood * 0.5) / total * 100f;
+            
+            var statsRequest = new UpdateStatsRequest
+            {
+                score = _currentScore,
+                perfectCount = _perfectCount,
+                greatCount = _greatCount,
+                goodCount = _goodCount,
+                missCount = _missCount,
+                maxCombo = _maxCombo,
+                songId = _currentSongId
+            };
+            
+            await UserStatsManager.Instance.UpdateStats(statsRequest);
+            SceneManager.LoadScene("SongSelectScene");
         }
     }
 }

@@ -7,6 +7,7 @@ namespace TapRythm.Managers
     public class SongManager : MonoBehaviour
     {
         public static SongManager Instance { get; private set; }
+        public static event System.Action OnSongFinished;
         
         [SerializeField] private AudioSource _audioSource;
         
@@ -16,7 +17,6 @@ namespace TapRythm.Managers
         private double _songStartTime;
         private double _pauseTimeOffset = 0;
         private bool _isPaused = false;
-        
         private Queue<NoteData> _noteQueue;
         private System.Action<NoteData> _onNoteSpawn;
         
@@ -38,6 +38,7 @@ namespace TapRythm.Managers
                     
                     _audioSource.playOnAwake = false;
                     _audioSource.loop = false;
+                    _audioSource.enabled = true;
                 }
             }
             else
@@ -49,6 +50,13 @@ namespace TapRythm.Managers
         private void Update()
         {
             if (!IsPlaying || _isPaused) return;
+            
+            if (_audioSource != null && !_audioSource.isPlaying && IsPlaying)
+            {
+                IsPlaying = false;
+                OnSongFinished?.Invoke();
+                return;
+            }
             
             float currentBeat = CurrentBeat;
             
@@ -69,6 +77,7 @@ namespace TapRythm.Managers
             if (_audioSource == null) return;
             
             _audioSource.clip = audioClip;
+            _audioSource.enabled = true;
             
             var sortedNotes = new List<NoteData>(chart.notes);
             sortedNotes.Sort((a, b) => a.beat.CompareTo(b.beat));
@@ -77,7 +86,16 @@ namespace TapRythm.Managers
         
         public void PlaySong()
         {
-            if (_audioSource == null || _audioSource.clip == null) return;
+            if (_audioSource == null || _audioSource.clip == null)
+            {
+                Debug.LogError("Аудио не загружено!");
+                return;
+            }
+
+            if (!_audioSource.enabled)
+            {
+                _audioSource.enabled = true;
+            }
             
             _songStartTime = AudioSettings.dspTime + 0.5;
             _audioSource.PlayScheduled(_songStartTime);
