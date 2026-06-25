@@ -59,7 +59,6 @@ namespace TapRythm.Notes
             if (_visual != null)
             {
                 _visual.SetupForType(type);
-                Debug.Log($"Note: установлен визуал для {type}");
             }
         }
 

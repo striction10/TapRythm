@@ -18,6 +18,7 @@ namespace TapRythm.Managers
         public int perfectCount;
         public bool isCompleted;
         public string bpm;
+        public bool isFavorite;
     }
 
     [System.Serializable]
