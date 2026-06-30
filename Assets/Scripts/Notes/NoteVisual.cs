@@ -7,6 +7,7 @@ namespace TapRythm.Notes
     public class NoteVisual : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer _spriteRender;
+        [SerializeField] private GameObject _arrow;
         [SerializeField] private Sprite _tapSprite;
         [SerializeField] private Sprite _holdSprite;
         [SerializeField] private Color _tapColor = Color.blue;
@@ -16,6 +17,9 @@ namespace TapRythm.Notes
         public void SetupForType(NoteType type)
         {
             if (_spriteRender == null) return;
+
+            if (_arrow != null)
+                _arrow.SetActive(false);
             
             switch (type)
             {
@@ -27,7 +31,13 @@ namespace TapRythm.Notes
                 case NoteType.Hold:
                     _spriteRender.sprite = _holdSprite;
                     _spriteRender.color = _holdColor;
-                    _spriteRender.transform.localScale = new Vector3(0.8f, 1f, 0.1f); // Длинная!
+                    _spriteRender.transform.localScale = new Vector3(0.8f, 1f, 0.1f);
+                    break;
+                case NoteType.Slide:
+                    _spriteRender.sprite = _tapSprite;
+                    _spriteRender.color = _tapColor;
+                    if (_arrow != null)
+                        _arrow.SetActive(true);
                     break;
             }
         }

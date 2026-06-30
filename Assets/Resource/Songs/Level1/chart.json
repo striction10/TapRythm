@@ -5,13 +5,20 @@
     "offset": 0,
     "notes": [
         {"beat": 3, "lane": 2, "type": "tap"},
-        {"beat": 5, "lane": 1, "type": "tap"},
+        {"beat": 4.1, "lane": 0, "type": "tap"},
+        {"beat": 4.6, "lane": 1, "type": "tap"},
+
+        {"beat": 5, "lane": 2, "type": "tap"},
         {"beat": 7, "lane": 0, "type": "tap"},
-        {"beat": 8, "lane": 1, "type": "tap"},
+        {"beat": 8, "lane": 0, "type": "tap"},
+        {"beat": 8, "lane": 2, "type": "tap"},
         {"beat": 10, "lane": 0, "type": "tap"},
-        {"beat": 11, "lane": 0, "type": "tap"},
-        {"beat": 12, "lane": 1, "type": "tap"},
-        {"beat": 13, "lane": 1, "type": "tap"},
+
+        {"beat": 11, "lane": 1, "type": "slide"},
+        {"beat": 12.1, "lane": 0, "type": "tap"},
+        {"beat": 12.6, "lane": 1, "type": "tap"},
+
+        {"beat": 13, "lane": 2, "type": "tap"},
         {"beat": 14, "lane": 0, "type": "tap"},
         {"beat": 15, "lane": 2, "type": "tap"},
         {"beat": 16, "lane": 2, "type": "tap"},
@@ -19,16 +26,21 @@
         {"beat": 18, "lane": 1, "type": "tap"},
         {"beat": 19, "lane": 2, "type": "tap"},
         {"beat": 20, "lane": 0, "type": "tap"},
+
+        {"beat": 21.1, "lane": 1, "type": "tap"},
+        {"beat": 21.6, "lane": 0, "type": "tap"},
+        {"beat": 22, "lane": 2, "type": "slide"},
         
-        {"beat": 23, "lane": 2, "type": "tap"},
         {"beat": 24, "lane": 1, "type": "tap"},
-        {"beat": 25, "lane": 1, "type": "tap"},
+        {"beat": 25, "lane": 2, "type": "tap"},
         {"beat": 26, "lane": 0, "type": "tap"},
         {"beat": 27, "lane": 0, "type": "tap"},
-        {"beat": 28, "lane": 1, "type": "tap"},
+
+        {"beat": 28.1, "lane": 2, "type": "tap"},
+        {"beat": 28.6, "lane": 1, "type": "tap"},
+        {"beat": 29, "lane": 0, "type": "slide"},
         
-        {"beat": 30, "lane": 0, "type": "tap"},
-        {"beat": 31, "lane": 0, "type": "tap"},
+        {"beat": 31, "lane": 2, "type": "tap"},
         {"beat": 32, "lane": 1, "type": "tap"},
         {"beat": 33, "lane": 1, "type": "tap"},
         {"beat": 34, "lane": 0, "type": "tap"},
@@ -51,6 +63,10 @@
         {"beat": 54, "lane": 2, "type": "tap"},
         {"beat": 55, "lane": 0, "type": "tap"},
         {"beat": 56, "lane": 1, "type": "tap"},
+
+        {"beat": 57.1, "lane": 2, "type": "tap"},
+        {"beat": 57.6, "lane": 0, "type": "tap"},
+        {"beat": 58, "lane": 1, "type": "tap"},
         
         {"beat": 59, "lane": 2, "type": "tap"},
         {"beat": 60, "lane": 0, "type": "tap"},
@@ -221,6 +237,6 @@
         {"beat": 254, "lane": 2, "type": "tap"},
         {"beat": 255, "lane": 1, "type": "tap"},
         {"beat": 256, "lane": 2, "type": "tap"},
-        {"beat": 257, "lane": 3, "type": "tap"}
+        {"beat": 257, "lane": 1, "type": "tap"}
     ]
 }

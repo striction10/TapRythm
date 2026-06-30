@@ -110,15 +110,27 @@ namespace TapRythm.Managers
         {
             if (!IsPlaying || _isPaused) return;
             
+            if (_audioSource == null || !_audioSource.enabled)
+            {
+                Debug.LogWarning("SongManager: AudioSource = null или отключён");
+                return;
+            }
+            
             _isPaused = true;
             _audioSource.Pause();
             _pauseTimeOffset = AudioSettings.dspTime - _songStartTime;
             IsPlaying = false;
         }
-        
+
         public void ResumeSong()
         {
             if (!_isPaused) return;
+            
+            if (_audioSource == null || !_audioSource.enabled)
+            {
+                Debug.LogWarning("SongManager: AudioSource = null или отключён");
+                return;
+            }
             
             _songStartTime = AudioSettings.dspTime - _pauseTimeOffset;
             _audioSource.Play();

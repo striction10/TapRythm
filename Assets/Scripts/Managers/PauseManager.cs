@@ -55,15 +55,21 @@ namespace TapRythm.Game
             _timeScaleBeforePause = Time.timeScale;
             Time.timeScale = 0f;
             
-            SongManager.Instance?.PauseSong();
+            if (SongManager.Instance != null)
+            {
+                SongManager.Instance.PauseSong();
+            }
             
             var noteSpawner = FindFirstObjectByType<NoteSpawner>();
-            noteSpawner?.StopSpawning();
+            if (noteSpawner != null)
+            {
+                noteSpawner.StopSpawning();
+            }
             
             if (_pausePanel != null)
                 _pausePanel.SetActive(true);
         }
-        
+
         public void ResumeGame()
         {
             if (!_isPaused) return;
@@ -71,10 +77,16 @@ namespace TapRythm.Game
             _isPaused = false;
             Time.timeScale = _timeScaleBeforePause;
             
-            SongManager.Instance?.ResumeSong();
+            if (SongManager.Instance != null)
+            {
+                SongManager.Instance.ResumeSong();
+            }
             
             var noteSpawner = FindFirstObjectByType<NoteSpawner>();
-            noteSpawner?.StartSpawning();
+            if (noteSpawner != null)
+            {
+                noteSpawner.StartSpawning();
+            }
             
             if (_pausePanel != null)
                 _pausePanel.SetActive(false);

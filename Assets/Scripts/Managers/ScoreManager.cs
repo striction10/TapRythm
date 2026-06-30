@@ -186,7 +186,7 @@ namespace TapRythm.Managers
             };
             
             await UserStatsManager.Instance.UpdateStats(statsRequest);
-            SceneManager.LoadScene("SongSelectScene");
+            //SceneManager.LoadScene("SongSelectScene");
         }
     }
 }

@@ -71,7 +71,7 @@ namespace TapRythm.UI
                 else
                 {
                     _statusText.text = "ДОСТУПНА";
-                    _statusText.color = Color.white;
+                    _statusText.color = new Color(0.518f, 0.490f, 0.345f);
                     _backgroundImage.color = _unlockedColor;
                 }
                 
